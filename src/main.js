@@ -231,6 +231,7 @@ function convertToClockwise(vertices, holes) {
 function normalizeOpts(opts) {
 
     opts.depth = opts.depth || 1;
+    opts.elevation = opts.elevation || 0;
     opts.bevelSize = opts.bevelSize || 0;
     opts.bevelSegments = opts.bevelSegments == null ? 2 : opts.bevelSegments;
     opts.smoothBevel = opts.smoothBevel || false;
@@ -345,7 +346,7 @@ const quadToTriangle = [
 
 // Add side vertices and indices. Include bevel.
 function addExtrudeSide(
-    out, {vertices, topVertices, splittedMap, depth, rect}, start, end,
+    out, {vertices, topVertices, splittedMap, depth, rect, elevation}, start, end,
     cursors, opts
 ) {
     const ringVertexCount = end - start;
@@ -404,7 +405,7 @@ function addExtrudeSide(
                     const zz = v[2] * r + z;
                     out.position[cursors.vertex * 3] = x;
                     out.position[cursors.vertex * 3 + 1] = y;
-                    out.position[cursors.vertex * 3 + 2] = zz;
+                    out.position[cursors.vertex * 3 + 2] = zz + elevation;
 
                     // TODO Cache and optimize
                     if (i > 0) {
@@ -459,7 +460,7 @@ function addExtrudeSide(
                 const vtx2 = cursors.vertex * 2;
                 out.position[vtx3] = x;
                 out.position[vtx3 + 1] = y;
-                out.position[vtx3 + 2] = z;
+                out.position[vtx3 + 2] = z + elevation;
                 if (i > 0) {
                     uLen += Math.sqrt((prevX - x) * (prevX - x) + (prevY - y) * (prevY - y));
                 }
@@ -487,7 +488,7 @@ function addExtrudeSide(
     }
 }
 
-function addTopAndBottom({indices, topVertices, rect, depth}, out, cursors, opts) {
+function addTopAndBottom({indices, topVertices, rect, depth, elevation}, out, cursors, opts) {
     if (topVertices.length <= 4) {
         return;
     }
@@ -508,7 +509,7 @@ function addTopAndBottom({indices, topVertices, rect, depth}, out, cursors, opts
             const vtx2 = cursors.vertex * 2;
             out.position[vtx3] = x;
             out.position[vtx3 + 1] = y;
-            out.position[vtx3 + 2] = (1 - k) * depth;
+            out.position[vtx3 + 2] = (1 - k) * depth + elevation;
 
             out.uv[vtx2] = (x - rect.x) / size;
             out.uv[vtx2 + 1] = (y - rect.y) / size;
@@ -760,12 +761,8 @@ function convertPolylineToTriangulatedPolygon(polyline, polylineIdx, opts) {
     const topVertices = opts.bevelSize > 0
         ? offsetPolygon(polygonVertices, [], opts.bevelSize, null, true) : polygonVertices;
     const boundingRect = opts.boundingRect;
-
-    const res = splitVertices(polygonVertices, null, opts.smoothSide, opts.smoothSideThreshold);
     return {
-        vertices: res.vertices,
-        rawVertices: vertices,
-        splittedMap: res.splittedMap,
+        vertices: polygonVertices,
         indices,
         topVertices,
         rect: {
@@ -904,7 +901,8 @@ export function extrudePolygon(polygons, opts) {
             holes: res.holes,
             splittedMap: res.splittedMap,
             rect: transformdRect,
-            depth: typeof opts.depth === 'function' ? opts.depth(i) : opts.depth
+            depth: typeof opts.depth === 'function' ? opts.depth(i) : opts.depth,
+            elevation: typeof opts.elevation === 'function' ? opts.elevation(i) : opts.elevation
         });
     }
     return innerExtrudeTriangulatedPolygon(preparedData, opts);
@@ -1056,6 +1054,7 @@ export function extrudeGeoJSON(geojson, opts) {
     };
 
     const originalDepth = opts.depth;
+    const originalElevation = opts.elevation;
     return {
         polyline: extrudePolyline(polylines, Object.assign(opts, {
             depth: function (idx) {
@@ -1075,7 +1074,13 @@ export function extrudeGeoJSON(geojson, opts) {
                     );
                 }
                 return originalDepth;
-            }
+            },
+            elevation: function (idx) {
+                if (typeof originalElevation === "function") {
+                    return originalElevation(geojson.features[polygonFeatureIndices[idx]]);
+                }
+                return originalElevation;
+            },
         }))
     };
 }
