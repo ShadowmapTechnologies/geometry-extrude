@@ -4,7 +4,8 @@
   "main": "dist/geometry-extrude.js",
   "scripts": {
     "dev": "rollup -c -w",
-    "build": "rollup -c && uglifyjs -c -m -- dist/geometry-extrude.js > dist/geometry-extrude.min.js"
+    "build": "rollup -c && uglifyjs -c -m -- dist/geometry-extrude.js > dist/geometry-extrude.min.js",
+    "prepublishOnly": "npm run build"
   },
   "types": "index.d.ts",
   "repository": "https://github.com/pissang/geometry-extrude",
