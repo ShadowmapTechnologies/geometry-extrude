@@ -1,5 +1,5 @@
 {
-  "name": "geometry-extrude",
+  "name": "@shadowmaptechnologies/geometry-extrude",
   "version": "0.2.1",
   "main": "dist/geometry-extrude.js",
   "scripts": {
