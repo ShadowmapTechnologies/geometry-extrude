@@ -1,6 +1,6 @@
 {
   "name": "@shadowmaptechnologies/geometry-extrude",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "dist/geometry-extrude.js",
   "scripts": {
     "dev": "rollup -c -w",
