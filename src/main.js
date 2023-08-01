@@ -346,7 +346,7 @@ const quadToTriangle = [
 
 // Add side vertices and indices. Include bevel.
 function addExtrudeSide(
-    out, {vertices, topVertices, splittedMap, depth, rect, elevation}, start, end,
+    out, {vertices, topVertices, splittedMap, depth, rect, elevation, levels}, start, end,
     cursors, opts
 ) {
     const ringVertexCount = end - start;
@@ -464,8 +464,8 @@ function addExtrudeSide(
                 if (i > 0) {
                     uLen += Math.sqrt((prevX - x) * (prevX - x) + (prevY - y) * (prevY - y));
                 }
-                out.uv[vtx2] = uLen / size;
-                out.uv[vtx2 + 1] = z / size;
+                out.uv[vtx2] = uLen;
+                out.uv[vtx2 + 1] = k === 0 ? 0 : levels;
                 prevX = x;
                 prevY = y;
 
@@ -511,8 +511,12 @@ function addTopAndBottom({indices, topVertices, rect, depth, elevation}, out, cu
             out.position[vtx3 + 1] = y;
             out.position[vtx3 + 2] = (1 - k) * depth + elevation;
 
-            out.uv[vtx2] = (x - rect.x) / size;
-            out.uv[vtx2 + 1] = (y - rect.y) / size;
+            //out.uv[vtx2] = (x - rect.x) / size;
+            //out.uv[vtx2 + 1] = (y - rect.y) / size;
+
+            out.uv[vtx2] = 0.5; // Use constant UV values for roofs
+            out.uv[vtx2 + 1] = 0.5;
+
             cursors.vertex++;
         }
     }
@@ -676,7 +680,7 @@ function innerExtrudeTriangulatedPolygon(preparedData, opts) {
     }
 
     // Wrap uv
-    for (let i = 0; i < data.uv.length; i++) {
+    /*for (let i = 0; i < data.uv.length; i++) {
         const val = data.uv[i];
         if (val > 0 && Math.round(val) === val) {
             data.uv[i] = 1;
@@ -684,7 +688,7 @@ function innerExtrudeTriangulatedPolygon(preparedData, opts) {
         else {
             data.uv[i] = val % 1;
         }
-    }
+    }*/
 
     data.normal = generateNormal(data.indices, data.position);
     // PENDING
@@ -902,7 +906,8 @@ export function extrudePolygon(polygons, opts) {
             splittedMap: res.splittedMap,
             rect: transformdRect,
             depth: typeof opts.depth === 'function' ? opts.depth(i) : opts.depth,
-            elevation: typeof opts.elevation === 'function' ? opts.elevation(i) : opts.elevation
+            elevation: typeof opts.elevation === 'function' ? opts.elevation(i) : opts.elevation,
+            levels: typeof opts.levels === 'function' ? opts.levels(i) : opts.levels,
         });
     }
     return innerExtrudeTriangulatedPolygon(preparedData, opts);
@@ -1055,6 +1060,7 @@ export function extrudeGeoJSON(geojson, opts) {
 
     const originalDepth = opts.depth;
     const originalElevation = opts.elevation;
+    const originalLevels = opts.levels;
     return {
         polyline: extrudePolyline(polylines, Object.assign(opts, {
             depth: function (idx) {
@@ -1080,6 +1086,12 @@ export function extrudeGeoJSON(geojson, opts) {
                     return originalElevation(geojson.features[polygonFeatureIndices[idx]]);
                 }
                 return originalElevation;
+            },
+            levels: function (idx) {
+                if (typeof originalLevels === "function") {
+                    return originalLevels(geojson.features[polygonFeatureIndices[idx]]);
+                }
+                return originalLevels;
             },
         }))
     };

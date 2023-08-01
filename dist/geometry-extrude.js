@@ -693,25 +693,25 @@
      Simplify.js, a high-performance JS polyline simplification library
      mourner.github.io/simplify-js
     */
+
     // to suit your point format, run search/replace for '.x' and '.y';
     // for 3D version, see 3d branch (configurability would draw significant performance overhead)
+
     // square distance between 2 points
     function getSqDist(p1, p2) {
       var dx = p1[0] - p2[0],
-          dy = p1[1] - p2[1];
+        dy = p1[1] - p2[1];
       return dx * dx + dy * dy;
-    } // square distance from a point to a segment
+    }
 
-
+    // square distance from a point to a segment
     function getSqSegDist(p, p1, p2) {
       var x = p1[0],
-          y = p1[1],
-          dx = p2[0] - x,
-          dy = p2[1] - y;
-
+        y = p1[1],
+        dx = p2[0] - x,
+        dy = p2[1] - y;
       if (dx !== 0 || dy !== 0) {
         var t = ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy);
-
         if (t > 1) {
           x = p2[0];
           y = p2[1];
@@ -720,62 +720,54 @@
           y += dy * t;
         }
       }
-
       dx = p[0] - x;
       dy = p[1] - y;
       return dx * dx + dy * dy;
-    } // rest of the code doesn't care about point format
+    }
+    // rest of the code doesn't care about point format
+
     // basic distance-based simplification
-
-
     function simplifyRadialDist(points, sqTolerance) {
       var prevPoint = points[0],
-          newPoints = [prevPoint],
-          point;
-
+        newPoints = [prevPoint],
+        point;
       for (var i = 1, len = points.length; i < len; i++) {
         point = points[i];
-
         if (getSqDist(point, prevPoint) > sqTolerance) {
           newPoints.push(point);
           prevPoint = point;
         }
       }
-
       if (prevPoint !== point) newPoints.push(point);
       return newPoints;
     }
-
     function simplifyDPStep(points, first, last, sqTolerance, simplified) {
       var maxSqDist = sqTolerance,
-          index;
-
+        index;
       for (var i = first + 1; i < last; i++) {
         var sqDist = getSqSegDist(points[i], points[first], points[last]);
-
         if (sqDist > maxSqDist) {
           index = i;
           maxSqDist = sqDist;
         }
       }
-
       if (maxSqDist > sqTolerance) {
         if (index - first > 1) simplifyDPStep(points, first, index, sqTolerance, simplified);
         simplified.push(points[index]);
         if (last - index > 1) simplifyDPStep(points, index, last, sqTolerance, simplified);
       }
-    } // simplification using Ramer-Douglas-Peucker algorithm
+    }
 
-
+    // simplification using Ramer-Douglas-Peucker algorithm
     function simplifyDouglasPeucker(points, sqTolerance) {
       var last = points.length - 1;
       var simplified = [points[0]];
       simplifyDPStep(points, 0, last, sqTolerance, simplified);
       simplified.push(points[last]);
       return simplified;
-    } // both algorithms combined for awesome performance
+    }
 
-
+    // both algorithms combined for awesome performance
     function simplify(points, tolerance, highestQuality) {
       if (points.length <= 2) return points;
       var sqTolerance = tolerance !== undefined ? tolerance * tolerance : 1;
@@ -843,18 +835,18 @@
     }
     function v3Cross(out, v1, v2) {
       var ax = v1[0],
-          ay = v1[1],
-          az = v1[2],
-          bx = v2[0],
-          by = v2[1],
-          bz = v2[2];
+        ay = v1[1],
+        az = v1[2],
+        bx = v2[0],
+        by = v2[1],
+        bz = v2[2];
       out[0] = ay * bz - az * by;
       out[1] = az * bx - ax * bz;
       out[2] = ax * by - ay * bx;
       return out;
     }
-    var rel = []; // start and end must be normalized
-
+    var rel = [];
+    // start and end must be normalized
     function slerp(out, start, end, t) {
       // https://keithmaggio.wordpress.com/2011/02/15/math-magician-lerp-slerp-and-nlerp/
       var cosT = dot(start, end);
@@ -874,26 +866,23 @@
       var cross = dy2 * dx1 - dx2 * dy1;
       var tmp1 = y1 - y3;
       var tmp2 = x1 - x3;
-      var t1 = (dx2 * tmp1 - dy2 * tmp2) / cross; // const t2 = (dx1 * tmp1 - dy1 * tmp2) / cross;
+      var t1 = (dx2 * tmp1 - dy2 * tmp2) / cross;
+      // const t2 = (dx1 * tmp1 - dy1 * tmp2) / cross;
 
       if (out) {
         writeOffset = writeOffset || 0;
         out[writeOffset] = x1 + t1 * (x2 - x1);
         out[writeOffset + 1] = y1 + t1 * (y2 - y1);
       }
-
       return t1;
     }
     function area(points, start, end) {
       // Signed polygon area
       var n = end - start;
-
       if (n < 3) {
         return 0;
       }
-
       var area = 0;
-
       for (var i = (end - 1) * 2, j = start * 2; j < end * 2;) {
         var x0 = points[i];
         var y0 = points[i + 1];
@@ -903,7 +892,6 @@
         j += 2;
         area += x0 * y1 - x1 * y0;
       }
-
       return area;
     }
 
@@ -918,22 +906,19 @@
     var v1 = [];
     var v2 = [];
     var v = [];
-
-    function innerOffsetPolygon(vertices, out, start, end, outStart, offset, miterLimit, close, removeIntersections // offsetLines
+    function innerOffsetPolygon(vertices, out, start, end, outStart, offset, miterLimit, close, removeIntersections
+    // offsetLines
     ) {
       var checkMiterLimit = miterLimit != null;
       var cursor = outStart;
       var indicesMap = null;
-
       if (checkMiterLimit) {
         indicesMap = new Uint32Array(end - start);
       }
-
       var prevOffsetX;
       var prevOffsetY;
       var prevCursor;
       var tmpIntersection = [];
-
       for (var i = start; i < end; i++) {
         var nextIdx = i === end - 1 ? start : i + 1;
         var prevIdx = i === start ? end - 1 : i - 1;
@@ -953,15 +938,15 @@
         var needCheckIntersection = false;
         var offsetX = void 0;
         var offsetY = void 0;
-
         if (!close && i === start) {
           v[0] = v2[1];
           v[1] = -v2[0];
           v2Normalize(v, v);
           prevOffsetX = out[cursor * 2] = x2 + v[0] * offset;
           prevOffsetY = out[cursor * 2 + 1] = y2 + v[1] * offset;
-          prevCursor = cursor; // offsetLines && offsetLines.push([x2, y2, prevOffsetX, prevOffsetY, cursor])
+          prevCursor = cursor;
 
+          // offsetLines && offsetLines.push([x2, y2, prevOffsetX, prevOffsetY, cursor])
           cursor++;
         } else if (!close && i === end - 1) {
           v[0] = v1[1];
@@ -978,12 +963,11 @@
           v[0] = tmp;
           v2Normalize(v, v);
           var cosA = v2Dot(v, v2);
-          var sinA = Math.sqrt(1 - cosA * cosA); // PENDING
+          var sinA = Math.sqrt(1 - cosA * cosA);
+          // PENDING
           // Make sure it's offset lines instead of vertices.
-
           var miter = offset * Math.min(10, 1 / sinA);
           var isCovex = offset * cosA < 0;
-
           if (checkMiterLimit && 1 / sinA > miterLimit && isCovex) {
             // No need to check line intersection on the outline.
             var mx = x2 + v[0] * offset;
@@ -1001,45 +985,44 @@
             offsetY = y2 + v[1] * miter;
             needCheckIntersection = true;
           }
-
           if (needCheckIntersection) {
             // TODO Handle with whole.
             if (removeIntersections && prevOffsetX != null) {
               // Greedy, only check with previous offset line
               // PENDING: Is it necessary to check with other lines?
-              var t = lineIntersection(x1, y1, prevOffsetX, prevOffsetY, x2, y2, offsetX, offsetY, tmpIntersection, 0); // Use a eplison
-
+              var t = lineIntersection(x1, y1, prevOffsetX, prevOffsetY, x2, y2, offsetX, offsetY, tmpIntersection, 0);
+              // Use a eplison
               if (t >= -1e-2 && t <= 1 + 1e-2) {
                 // Update previous offset points.
                 out[prevCursor * 2] = offsetX = tmpIntersection[0];
                 out[prevCursor * 2 + 1] = offsetY = tmpIntersection[1];
               }
             }
-
             prevOffsetX = out[cursor * 2] = offsetX;
             prevOffsetY = out[cursor * 2 + 1] = offsetY;
-            prevCursor = cursor; // offsetLines && offsetLines.push([x2, y2, offsetX, offsetY, cursor])
+            prevCursor = cursor;
+
+            // offsetLines && offsetLines.push([x2, y2, offsetX, offsetY, cursor])
 
             cursor++;
           }
         }
       }
-
       return indicesMap;
     }
-
     function offsetPolygon(vertices, holes, offset, miterLimit, close) {
       var offsetVertices = miterLimit != null ? [] : new Float32Array(vertices.length);
       var exteriorSize = holes && holes.length ? holes[0] : vertices.length / 2;
       innerOffsetPolygon(vertices, offsetVertices, 0, exteriorSize, 0, offset, miterLimit, close, true);
-
       if (holes) {
         for (var i = 0; i < holes.length; i++) {
           var start = holes[i];
           var end = holes[i + 1] || vertices.length / 2;
           innerOffsetPolygon(vertices, offsetVertices, start, end, miterLimit != null ? offsetVertices.length / 2 : start, offset, miterLimit, close, false);
         }
-      } // TODO holes
+      }
+
+      // TODO holes
       // Remove intersections of offseted polygon
       // let len = offsetLines.length;
       // let tmpIntersection = [];
@@ -1047,6 +1030,7 @@
       //     const line1 = offsetLines[i];
       //     for (let k = i + 1; k < len; k++) {
       //         const line2 = offsetLines[k];
+
       //         const t = lineIntersection(
       //             line1[0], line1[1], line1[2], line1[3],
       //             line2[0], line2[1], line2[2], line2[3], tmpIntersection, 0
@@ -1061,11 +1045,8 @@
       //         }
       //     }
       // }
-
-
       return offsetVertices;
     }
-
     function reversePoints(points, stride, start, end) {
       for (var i = 0; i < Math.floor((end - start) / 2); i++) {
         for (var j = 0; j < stride; j++) {
@@ -1076,29 +1057,23 @@
           points[b] = tmp;
         }
       }
-
       return points;
     }
-
     function convertToClockwise(vertices, holes) {
       var polygonVertexCount = vertices.length / 2;
       var start = 0;
       var end = holes && holes.length ? holes[0] : polygonVertexCount;
-
       if (area(vertices, start, end) > 0) {
         reversePoints(vertices, 2, start, end);
       }
-
       for (var h = 1; h < (holes ? holes.length : 0) + 1; h++) {
         start = holes[h - 1];
         end = holes[h] || polygonVertexCount;
-
         if (area(vertices, start, end) < 0) {
           reversePoints(vertices, 2, start, end);
         }
       }
     }
-
     function normalizeOpts(opts) {
       opts.depth = opts.depth || 1;
       opts.elevation = opts.elevation || 0;
@@ -1106,35 +1081,29 @@
       opts.bevelSegments = opts.bevelSegments == null ? 2 : opts.bevelSegments;
       opts.smoothBevel = opts.smoothBevel || false;
       opts.simplify = opts.simplify || 0;
-
       if (opts.smoothSide == null) {
         opts.smoothSide = 'auto';
       }
-
       if (opts.smoothSideThreshold == null) {
         opts.smoothSideThreshold = 0.9;
-      } // Normalize bevel options.
+      }
 
-
+      // Normalize bevel options.
       if (typeof opts.depth === 'number') {
         opts.bevelSize = Math.min(!(opts.bevelSegments > 0) ? 0 : opts.bevelSize, opts.depth / 2);
       }
-
       if (!(opts.bevelSize > 0)) {
         opts.bevelSegments = 0;
       }
-
       opts.bevelSegments = Math.round(opts.bevelSegments);
       var boundingRect = opts.boundingRect;
       opts.translate = opts.translate || [0, 0];
       opts.scale = opts.scale || [1, 1];
-
       if (opts.fitRect) {
         var targetX = opts.fitRect.x == null ? boundingRect.x || 0 : opts.fitRect.x;
         var targetY = opts.fitRect.y == null ? boundingRect.y || 0 : opts.fitRect.y;
         var targetWidth = opts.fitRect.width;
         var targetHeight = opts.fitRect.height;
-
         if (targetWidth == null) {
           if (targetHeight != null) {
             targetWidth = targetHeight / boundingRect.height * boundingRect.width;
@@ -1145,19 +1114,16 @@
         } else if (targetHeight == null) {
           targetHeight = targetWidth / boundingRect.width * boundingRect.height;
         }
-
         opts.scale = [targetWidth / boundingRect.width, targetHeight / boundingRect.height];
         opts.translate = [(targetX - boundingRect.x) * opts.scale[0], (targetY - boundingRect.y) * opts.scale[1]];
       }
     }
-
     function generateNormal(indices, position) {
       function v3Set(p, a, b, c) {
         p[0] = a;
         p[1] = b;
         p[2] = c;
       }
-
       var p1 = [];
       var p2 = [];
       var p3 = [];
@@ -1166,7 +1132,6 @@
       var n = [];
       var len = indices.length;
       var normals = new Float32Array(position.length);
-
       for (var f = 0; f < len;) {
         var i1 = indices[f++] * 3;
         var i2 = indices[f++] * 3;
@@ -1176,15 +1141,14 @@
         v3Set(p3, position[i3], position[i3 + 1], position[i3 + 2]);
         v3Sub(v21, p1, p2);
         v3Sub(v32, p2, p3);
-        v3Cross(n, v21, v32); // Already be weighted by the triangle area
-
+        v3Cross(n, v21, v32);
+        // Already be weighted by the triangle area
         for (var _i = 0; _i < 3; _i++) {
           normals[i1 + _i] = normals[i1 + _i] + n[_i];
           normals[i2 + _i] = normals[i2 + _i] + n[_i];
           normals[i3 + _i] = normals[i3 + _i] + n[_i];
         }
       }
-
       for (var i = 0; i < normals.length;) {
         v3Set(n, normals[i], normals[i + 1], normals[i + 2]);
         v3Normalize(n, n);
@@ -1192,21 +1156,21 @@
         normals[i++] = n[1];
         normals[i++] = n[2];
       }
-
       return normals;
-    } // 0,0----1,0
+    }
+    // 0,0----1,0
     // 0,1----1,1
+    var quadToTriangle = [[0, 0], [1, 0], [1, 1], [0, 0], [1, 1], [0, 1]];
 
-
-    var quadToTriangle = [[0, 0], [1, 0], [1, 1], [0, 0], [1, 1], [0, 1]]; // Add side vertices and indices. Include bevel.
-
+    // Add side vertices and indices. Include bevel.
     function addExtrudeSide(out, _ref, start, end, cursors, opts) {
       var vertices = _ref.vertices,
-          topVertices = _ref.topVertices,
-          splittedMap = _ref.splittedMap,
-          depth = _ref.depth,
-          rect = _ref.rect,
-          elevation = _ref.elevation;
+        topVertices = _ref.topVertices,
+        splittedMap = _ref.splittedMap,
+        depth = _ref.depth,
+        rect = _ref.rect,
+        elevation = _ref.elevation,
+        levels = _ref.levels;
       var ringVertexCount = end - start;
       var splitBevel = opts.smoothBevel ? 1 : 2;
       var bevelSize = Math.min(depth / 2, opts.bevelSize);
@@ -1218,8 +1182,9 @@
         return splittedMap[idx + start] === splittedMap[nextIdx + start];
       } : function (idx) {
         return false;
-      }; // Side vertices
+      };
 
+      // Side vertices
       if (bevelSize > 0) {
         var v0 = [0, 0, 1];
         var _v = [];
@@ -1227,15 +1192,12 @@
         var _v3 = [];
         var ringCount = 0;
         var vLen = new Float32Array(ringVertexCount);
-
         for (var k = 0; k < 2; k++) {
           var z = k === 0 ? depth - bevelSize : bevelSize;
-
           for (var s = 0; s <= bevelSegments * splitBevel; s++) {
             var uLen = 0;
             var prevX = void 0;
             var prevY = void 0;
-
             for (var i = 0; i < ringVertexCount; i++) {
               var idx = (i % ringVertexCount + start) * 2;
               var rawIdx = splittedMap ? splittedMap[idx / 2] * 2 : idx;
@@ -1249,20 +1211,21 @@
               k === 0 ? slerp(_v3, v0, _v, t) : slerp(_v3, _v, _v2, t);
               var t2 = k === 0 ? t : 1 - t;
               var a = bevelSize * Math.sin(t2 * Math.PI / 2);
-              var b = l * Math.cos(t2 * Math.PI / 2); // ellipse radius
+              var b = l * Math.cos(t2 * Math.PI / 2);
 
+              // ellipse radius
               var r = bevelSize * l / Math.sqrt(a * a + b * b);
               var x = _v3[0] * r + topVertices[rawIdx];
               var y = _v3[1] * r + topVertices[rawIdx + 1];
               var zz = _v3[2] * r + z;
               out.position[cursors.vertex * 3] = x;
               out.position[cursors.vertex * 3 + 1] = y;
-              out.position[cursors.vertex * 3 + 2] = zz + elevation; // TODO Cache and optimize
+              out.position[cursors.vertex * 3 + 2] = zz + elevation;
 
+              // TODO Cache and optimize
               if (i > 0) {
                 uLen += Math.sqrt((prevX - x) * (prevX - x) + (prevY - y) * (prevY - y));
               }
-
               if (s > 0 || k > 0) {
                 var tmp = (cursors.vertex - ringVertexCount) * 3;
                 var prevX2 = out.position[tmp];
@@ -1270,17 +1233,15 @@
                 var prevZ2 = out.position[tmp + 2];
                 vLen[i] += Math.sqrt((prevX2 - x) * (prevX2 - x) + (prevY2 - y) * (prevY2 - y) + (prevZ2 - zz) * (prevZ2 - zz));
               }
-
               out.uv[cursors.vertex * 2] = uLen / size;
               out.uv[cursors.vertex * 2 + 1] = vLen[i] / size;
               prevX = x;
               prevY = y;
-              cursors.vertex++; // Just ignore this face if vertex are duplicted in `splitVertices`
-
+              cursors.vertex++;
+              // Just ignore this face if vertex are duplicted in `splitVertices`
               if (isDuplicateVertex(i)) {
                 continue;
               }
-
               if (splitBevel > 1 && s % splitBevel || splitBevel === 1 && s >= 1) {
                 for (var f = 0; f < 6; f++) {
                   var m = (quadToTriangle[f][0] + i) % ringVertexCount;
@@ -1289,23 +1250,17 @@
                 }
               }
             }
-
             ringCount++;
           }
         }
       } else {
         for (var _k = 0; _k < 2; _k++) {
           var _z = _k === 0 ? depth : 0;
-
           var _uLen = 0;
-
           var _prevX = void 0;
-
           var _prevY = void 0;
-
           for (var _i2 = 0; _i2 < ringVertexCount; _i2++) {
             var _idx = (_i2 + start) * 2;
-
             var _x = vertices[_idx];
             var _y = vertices[_idx + 1];
             var vtx3 = cursors.vertex * 3;
@@ -1313,60 +1268,48 @@
             out.position[vtx3] = _x;
             out.position[vtx3 + 1] = _y;
             out.position[vtx3 + 2] = _z + elevation;
-
             if (_i2 > 0) {
               _uLen += Math.sqrt((_prevX - _x) * (_prevX - _x) + (_prevY - _y) * (_prevY - _y));
             }
-
-            out.uv[vtx2] = _uLen / size;
-            out.uv[vtx2 + 1] = _z / size;
+            out.uv[vtx2] = _uLen;
+            out.uv[vtx2 + 1] = _k === 0 ? 0 : levels;
             _prevX = _x;
             _prevY = _y;
             cursors.vertex++;
           }
         }
-      } // Connect the side
-
-
+      }
+      // Connect the side
       var sideStartRingN = bevelSize > 0 ? bevelSegments * splitBevel + 1 : 1;
-
       for (var _i3 = 0; _i3 < ringVertexCount; _i3++) {
         // Just ignore this face if vertex are duplicted in `splitVertices`
         if (isDuplicateVertex(_i3)) {
           continue;
         }
-
         for (var _f = 0; _f < 6; _f++) {
           var _m = (quadToTriangle[_f][0] + _i3) % ringVertexCount;
-
           var _n = quadToTriangle[_f][1] + sideStartRingN;
-
           out.indices[cursors.index++] = (_n - 1) * ringVertexCount + _m + vertexOffset;
         }
       }
     }
-
     function addTopAndBottom(_ref2, out, cursors, opts) {
       var indices = _ref2.indices,
-          topVertices = _ref2.topVertices,
-          rect = _ref2.rect,
-          depth = _ref2.depth,
-          elevation = _ref2.elevation;
-
+        topVertices = _ref2.topVertices,
+        rect = _ref2.rect,
+        depth = _ref2.depth,
+        elevation = _ref2.elevation;
       if (topVertices.length <= 4) {
         return;
       }
-
-      var vertexOffset = cursors.vertex; // Top indices
-
+      var vertexOffset = cursors.vertex;
+      // Top indices
       var indicesLen = indices.length;
-
       for (var i = 0; i < indicesLen; i++) {
         out.indices[cursors.index++] = vertexOffset + indices[i];
       }
-
-      var size = Math.max(rect.width, rect.height); // Top and bottom vertices
-
+      Math.max(rect.width, rect.height);
+      // Top and bottom vertices
       for (var k = 0; k < (opts.excludeBottom ? 1 : 2); k++) {
         for (var _i4 = 0; _i4 < topVertices.length; _i4 += 2) {
           var x = topVertices[_i4];
@@ -1376,16 +1319,18 @@
           out.position[vtx3] = x;
           out.position[vtx3 + 1] = y;
           out.position[vtx3 + 2] = (1 - k) * depth + elevation;
-          out.uv[vtx2] = (x - rect.x) / size;
-          out.uv[vtx2 + 1] = (y - rect.y) / size;
+
+          //out.uv[vtx2] = (x - rect.x) / size;
+          //out.uv[vtx2 + 1] = (y - rect.y) / size;
+
+          out.uv[vtx2] = 0.5;
+          out.uv[vtx2 + 1] = 0.5;
           cursors.vertex++;
         }
-      } // Bottom indices
-
-
+      }
+      // Bottom indices
       if (!opts.excludeBottom) {
         var vertexCount = topVertices.length / 2;
-
         for (var _i5 = 0; _i5 < indicesLen; _i5 += 3) {
           for (var _k2 = 0; _k2 < 3; _k2++) {
             out.indices[cursors.index++] = vertexOffset + vertexCount + indices[_i5 + 2 - _k2];
@@ -1393,32 +1338,29 @@
         }
       }
     }
+
     /**
      * Split vertices for sharp side.
      */
-
-
     function splitVertices(vertices, holes, smoothSide, smoothSideThreshold) {
       var isAutoSmooth = smoothSide == null || smoothSide === 'auto';
-
       if (smoothSide === true) {
         return {
           vertices: vertices,
           holes: holes
         };
       }
-
       var newVertices = [];
       var newHoles = holes && [];
       var count = vertices.length / 2;
       var v1 = [];
-      var v2 = []; // Map of splitted index to raw index
+      var v2 = [];
 
+      // Map of splitted index to raw index
       var splittedMap = [];
       var start = 0;
       var end = 0;
       var polysCount = (holes ? holes.length : 0) + 1;
-
       for (var h = 0; h < polysCount; h++) {
         if (h === 0) {
           end = holes && holes.length ? holes[0] : count;
@@ -1426,14 +1368,12 @@
           start = holes[h - 1];
           end = holes[h] || count;
         }
-
         for (var i = start; i < end; i++) {
           var x2 = vertices[i * 2];
           var y2 = vertices[i * 2 + 1];
           var nextIdx = i === end - 1 ? start : i + 1;
           var x3 = vertices[nextIdx * 2];
           var y3 = vertices[nextIdx * 2 + 1];
-
           if (isAutoSmooth) {
             var prevIdx = i === start ? end - 1 : i - 1;
             var x1 = vertices[prevIdx * 2];
@@ -1445,7 +1385,6 @@
             v2Normalize(v1, v1);
             v2Normalize(v2, v2);
             var angleCos = v2Dot(v1, v2) * 0.5 + 0.5;
-
             if (1 - angleCos > smoothSideThreshold) {
               newVertices.push(x2, y2);
               splittedMap.push(i);
@@ -1458,31 +1397,27 @@
             splittedMap.push(i, i);
           }
         }
-
         if (h < polysCount - 1 && newHoles) {
           newHoles.push(newVertices.length / 2);
         }
       }
-
       return {
         vertices: new Float32Array(newVertices),
         splittedMap: splittedMap,
         holes: newHoles
       };
     }
-
     function innerExtrudeTriangulatedPolygon(preparedData, opts) {
       var indexCount = 0;
       var vertexCount = 0;
-
       for (var p = 0; p < preparedData.length; p++) {
         var _preparedData$p = preparedData[p],
-            indices = _preparedData$p.indices,
-            vertices = _preparedData$p.vertices,
-            splittedMap = _preparedData$p.splittedMap,
-            topVertices = _preparedData$p.topVertices,
-            holes = _preparedData$p.holes,
-            depth = _preparedData$p.depth;
+          indices = _preparedData$p.indices,
+          vertices = _preparedData$p.vertices,
+          splittedMap = _preparedData$p.splittedMap,
+          topVertices = _preparedData$p.topVertices,
+          holes = _preparedData$p.holes,
+          depth = _preparedData$p.depth;
         var bevelSize = Math.min(depth / 2, opts.bevelSize);
         var bevelSegments = !(bevelSize > 0) ? 0 : opts.bevelSegments;
         holes = holes || [];
@@ -1491,7 +1426,6 @@
         var ringCount = 2 + bevelSegments * 2;
         var start = 0;
         var end = 0;
-
         for (var h = 0; h < holes.length + 1; h++) {
           if (h === 0) {
             end = holes.length ? holes[0] : vertices.length / 2;
@@ -1499,16 +1433,15 @@
             start = holes[h - 1];
             end = holes[h] || vertices.length / 2;
           }
-
           var faceEnd = splittedMap ? splittedMap[end - 1] + 1 : end;
           var faceStart = splittedMap ? splittedMap[start] : start;
           indexCount += (faceEnd - faceStart) * 6 * (ringCount - 1);
           var sideRingVertexCount = end - start;
-          vertexCount += sideRingVertexCount * ringCount // Double the bevel vertex number if not smooth
+          vertexCount += sideRingVertexCount * ringCount
+          // Double the bevel vertex number if not smooth
           + (!opts.smoothBevel ? bevelSegments * sideRingVertexCount * 2 : 0);
         }
       }
-
       var data = {
         position: new Float32Array(vertexCount * 3),
         indices: new (vertexCount > 0xffff ? Uint32Array : Uint16Array)(indexCount),
@@ -1518,25 +1451,19 @@
         vertex: 0,
         index: 0
       };
-
       for (var d = 0; d < preparedData.length; d++) {
         addTopAndBottom(preparedData[d], data, cursors, opts);
       }
-
       for (var _d = 0; _d < preparedData.length; _d++) {
         var _preparedData$_d = preparedData[_d],
-            _holes = _preparedData$_d.holes,
-            _vertices = _preparedData$_d.vertices;
-
+          _holes = _preparedData$_d.holes,
+          _vertices = _preparedData$_d.vertices;
         var _vertexCount = _vertices.length / 2;
-
         var _start = 0;
-
-        var _end = _holes && _holes.length ? _holes[0] : _vertexCount; // Add exterior
-
-
-        addExtrudeSide(data, preparedData[_d], _start, _end, cursors, opts); // Add holes
-
+        var _end = _holes && _holes.length ? _holes[0] : _vertexCount;
+        // Add exterior
+        addExtrudeSide(data, preparedData[_d], _start, _end, cursors, opts);
+        // Add holes
         if (_holes) {
           for (var _h = 0; _h < _holes.length; _h++) {
             _start = _holes[_h];
@@ -1544,41 +1471,37 @@
             addExtrudeSide(data, preparedData[_d], _start, _end, cursors, opts);
           }
         }
-      } // Wrap uv
-
-
-      for (var i = 0; i < data.uv.length; i++) {
-        var val = data.uv[i];
-
-        if (val > 0 && Math.round(val) === val) {
-          data.uv[i] = 1;
-        } else {
-          data.uv[i] = val % 1;
-        }
       }
 
-      data.normal = generateNormal(data.indices, data.position); // PENDING
+      // Wrap uv
+      /*for (let i = 0; i < data.uv.length; i++) {
+          const val = data.uv[i];
+          if (val > 0 && Math.round(val) === val) {
+              data.uv[i] = 1;
+          }
+          else {
+              data.uv[i] = val % 1;
+          }
+      }*/
 
+      data.normal = generateNormal(data.indices, data.position);
+      // PENDING
       data.boundingRect = preparedData[0] && preparedData[0].rect;
       return data;
     }
-
     function convertPolylineToTriangulatedPolygon(polyline, polylineIdx, opts) {
       var lineWidth = opts.lineWidth;
       var pointCount = polyline.length;
       var points = new Float32Array(pointCount * 2);
       var translate = opts.translate || [0, 0];
       var scale = opts.scale || [1, 1];
-
       for (var i = 0, k = 0; i < pointCount; i++) {
         points[k++] = polyline[i][0] * scale[0] + translate[0];
         points[k++] = polyline[i][1] * scale[1] + translate[1];
       }
-
       if (area(points, 0, pointCount) < 0) {
         reversePoints(points, 2, 0, pointCount);
       }
-
       var insidePoints = [];
       var outsidePoints = [];
       var miterLimit = opts.miterLimit;
@@ -1589,19 +1512,16 @@
       var polygonVertices = new Float32Array(polygonVertexCount * 2);
       var offset = 0;
       var outsidePointCount = outsidePoints.length / 2;
-
       for (var _i6 = 0; _i6 < outsidePoints.length; _i6++) {
         polygonVertices[offset++] = outsidePoints[_i6];
       }
-
       for (var _i7 = 0; _i7 < insidePoints.length; _i7++) {
         polygonVertices[offset++] = insidePoints[_i7];
-      } // Built indices
+      }
 
-
+      // Built indices
       var indices = new (polygonVertexCount > 0xffff ? Uint32Array : Uint16Array)(((pointCount - 1) * 2 + (polygonVertexCount - pointCount * 2)) * 3);
       var off = 0;
-
       for (var _i8 = 0; _i8 < pointCount - 1; _i8++) {
         var i2 = _i8 + 1;
         indices[off++] = outsidePointCount - 1 - outsideIndicesMap[_i8];
@@ -1610,7 +1530,6 @@
         indices[off++] = outsidePointCount - 1 - outsideIndicesMap[_i8];
         indices[off++] = insideIndicesMap[_i8] + 1 + outsidePointCount;
         indices[off++] = insideIndicesMap[_i8] + outsidePointCount;
-
         if (insideIndicesMap[i2] - insideIndicesMap[_i8] === 2) {
           indices[off++] = insideIndicesMap[_i8] + 2 + outsidePointCount;
           indices[off++] = insideIndicesMap[_i8] + 1 + outsidePointCount;
@@ -1621,7 +1540,6 @@
           indices[off++] = outsidePointCount - 1 - (outsideIndicesMap[_i8] + 2);
         }
       }
-
       var topVertices = opts.bevelSize > 0 ? offsetPolygon(polygonVertices, [], opts.bevelSize, null, true) : polygonVertices;
       var boundingRect = opts.boundingRect;
       return {
@@ -1638,10 +1556,8 @@
         holes: []
       };
     }
-
     function removeClosePointsOfPolygon(polygon, epsilon) {
       var newPolygon = [];
-
       for (var k = 0; k < polygon.length; k++) {
         var points = polygon[k];
         var newPoints = [];
@@ -1649,43 +1565,34 @@
         var x1 = points[len - 1][0];
         var y1 = points[len - 1][1];
         var dist = 0;
-
         for (var i = 0; i < len; i++) {
           var x2 = points[i][0];
           var y2 = points[i][1];
           var dx = x2 - x1;
           var dy = y2 - y1;
           dist += Math.sqrt(dx * dx + dy * dy);
-
           if (dist > epsilon) {
             newPoints.push(points[i]);
             dist = 0;
           }
-
           x1 = x2;
           y1 = y2;
         }
-
         if (newPoints.length >= 3) {
           newPolygon.push(newPoints);
         }
       }
-
       return newPolygon.length > 0 ? newPolygon : null;
     }
-
     function simplifyPolygon(polygon, tolerance) {
       var newPolygon = [];
-
       for (var k = 0; k < polygon.length; k++) {
         var points = polygon[k];
         points = simplify(points, tolerance, true);
-
         if (points.length >= 3) {
           newPolygon.push(points);
         }
       }
-
       return newPolygon.length > 0 ? newPolygon : null;
     }
     /**
@@ -1706,17 +1613,13 @@
      *
      * @return {Object} {indices, position, uv, normal, boundingRect}
      */
-
-
     function extrudePolygon(polygons, opts) {
       opts = Object.assign({}, opts);
       var min = [Infinity, Infinity];
       var max = [-Infinity, -Infinity];
-
       for (var i = 0; i < polygons.length; i++) {
         updateBoundingRect(polygons[i][0], min, max);
       }
-
       opts.boundingRect = opts.boundingRect || {
         x: min[0],
         y: min[1],
@@ -1735,40 +1638,30 @@
         height: boundingRect.height * scale[1]
       };
       var epsilon = Math.min(boundingRect.width, boundingRect.height) / 1e5;
-
       for (var _i9 = 0; _i9 < polygons.length; _i9++) {
         var newPolygon = removeClosePointsOfPolygon(polygons[_i9], epsilon);
-
         if (!newPolygon) {
           continue;
         }
-
         var simplifyTolerance = opts.simplify / Math.max(scale[0], scale[1]);
-
         if (simplifyTolerance > 0) {
           newPolygon = simplifyPolygon(newPolygon, simplifyTolerance);
         }
-
         if (!newPolygon) {
           continue;
         }
-
         var _earcut$flatten = earcut$1.flatten(newPolygon),
-            vertices = _earcut$flatten.vertices,
-            holes = _earcut$flatten.holes,
-            dimensions = _earcut$flatten.dimensions;
-
+          vertices = _earcut$flatten.vertices,
+          holes = _earcut$flatten.holes,
+          dimensions = _earcut$flatten.dimensions;
         for (var k = 0; k < vertices.length;) {
           vertices[k] = vertices[k++] * scale[0] + translate[0];
           vertices[k] = vertices[k++] * scale[1] + translate[1];
         }
-
         convertToClockwise(vertices, holes);
-
         if (dimensions !== 2) {
           throw new Error('Only 2D polygon points are supported');
         }
-
         var topVertices = opts.bevelSize > 0 ? offsetPolygon(vertices, holes, opts.bevelSize, null, true) : vertices;
         var indices = triangulate(topVertices, holes, dimensions);
         var res = splitVertices(vertices, holes, opts.smoothSide, opts.smoothSideThreshold);
@@ -1781,12 +1674,13 @@
           splittedMap: res.splittedMap,
           rect: transformdRect,
           depth: typeof opts.depth === 'function' ? opts.depth(_i9) : opts.depth,
-          elevation: typeof opts.elevation === 'function' ? opts.elevation(_i9) : opts.elevation
+          elevation: typeof opts.elevation === 'function' ? opts.elevation(_i9) : opts.elevation,
+          levels: typeof opts.levels === 'function' ? opts.levels(_i9) : opts.levels
         });
       }
-
       return innerExtrudeTriangulatedPolygon(preparedData, opts);
     }
+
     /**
      *
      * @param {Array} polylines Polylines array that match GeoJSON MultiLineString geometry.
@@ -1807,16 +1701,13 @@
      * @param {Object} [opts.boundingRect]
      * @return {Object} {indices, position, uv, normal, boundingRect}
      */
-
     function extrudePolyline(polylines, opts) {
       opts = Object.assign({}, opts);
       var min = [Infinity, Infinity];
       var max = [-Infinity, -Infinity];
-
       for (var i = 0; i < polylines.length; i++) {
         updateBoundingRect(polylines[i], min, max);
       }
-
       opts.boundingRect = opts.boundingRect || {
         x: min[0],
         y: min[1],
@@ -1825,31 +1716,24 @@
       };
       normalizeOpts(opts);
       var scale = opts.scale || [1, 1];
-
       if (opts.lineWidth == null) {
         opts.lineWidth = 1;
       }
-
       if (opts.miterLimit == null) {
         opts.miterLimit = 2;
       }
-
-      var preparedData = []; // Extrude polyline to polygon
-
+      var preparedData = [];
+      // Extrude polyline to polygon
       for (var _i10 = 0; _i10 < polylines.length; _i10++) {
         var newPolyline = polylines[_i10];
         var simplifyTolerance = opts.simplify / Math.max(scale[0], scale[1]);
-
         if (simplifyTolerance > 0) {
           newPolyline = simplify(newPolyline, simplifyTolerance, true);
         }
-
         preparedData.push(convertPolylineToTriangulatedPolygon(newPolyline, _i10, opts));
       }
-
       return innerExtrudeTriangulatedPolygon(preparedData, opts);
     }
-
     function updateBoundingRect(points, min, max) {
       for (var i = 0; i < points.length; i++) {
         min[0] = Math.min(points[i][0], min[0]);
@@ -1858,6 +1742,7 @@
         max[1] = Math.max(points[i][1], max[1]);
       }
     }
+
     /**
      *
      * @param {Object} geojson
@@ -1878,9 +1763,8 @@
      * @param {Object} [opts.boundingRect]
      * @return {Object} {polyline: {indices, position, uv, normal}, polygon: {indices, position, uv, normal}}
      */
+
     // TODO Not merge feature
-
-
     function extrudeGeoJSON(geojson, opts) {
       opts = Object.assign({}, opts);
       var polylines = [];
@@ -1889,7 +1773,6 @@
       var polygonFeatureIndices = [];
       var min = [Infinity, Infinity];
       var max = [-Infinity, -Infinity];
-
       if (geojson.type === 'LineString' || geojson.type === 'MultiLineString' || geojson.type === 'Polygon' || geojson.type === 'MultiPolygon') {
         geojson = {
           features: [{
@@ -1897,11 +1780,9 @@
           }]
         };
       }
-
       for (var i = 0; i < geojson.features.length; i++) {
         var feature = geojson.features[i];
         var geometry = feature.geometry;
-
         if (geometry && geometry.coordinates) {
           switch (geometry.type) {
             case 'LineString':
@@ -1909,34 +1790,28 @@
               polylineFeatureIndices.push(i);
               updateBoundingRect(geometry.coordinates, min, max);
               break;
-
             case 'MultiLineString':
               for (var k = 0; k < geometry.coordinates.length; k++) {
                 polylines.push(geometry.coordinates[k]);
                 polylineFeatureIndices.push(i);
                 updateBoundingRect(geometry.coordinates[k], min, max);
               }
-
               break;
-
             case 'Polygon':
               polygons.push(geometry.coordinates);
               polygonFeatureIndices.push(i);
               updateBoundingRect(geometry.coordinates[0], min, max);
               break;
-
             case 'MultiPolygon':
               for (var _k3 = 0; _k3 < geometry.coordinates.length; _k3++) {
                 polygons.push(geometry.coordinates[_k3]);
                 polygonFeatureIndices.push(i);
                 updateBoundingRect(geometry.coordinates[_k3][0], min, max);
               }
-
               break;
           }
         }
       }
-
       opts.boundingRect = opts.boundingRect || {
         x: min[0],
         y: min[1],
@@ -1945,13 +1820,13 @@
       };
       var originalDepth = opts.depth;
       var originalElevation = opts.elevation;
+      var originalLevels = opts.levels;
       return {
         polyline: extrudePolyline(polylines, Object.assign(opts, {
           depth: function depth(idx) {
             if (typeof originalDepth === 'function') {
               return originalDepth(geojson.features[polylineFeatureIndices[idx]]);
             }
-
             return originalDepth;
           }
         })),
@@ -1960,15 +1835,19 @@
             if (typeof originalDepth === 'function') {
               return originalDepth(geojson.features[polygonFeatureIndices[idx]]);
             }
-
             return originalDepth;
           },
           elevation: function elevation(idx) {
             if (typeof originalElevation === "function") {
               return originalElevation(geojson.features[polygonFeatureIndices[idx]]);
             }
-
             return originalElevation;
+          },
+          levels: function levels(idx) {
+            if (typeof originalLevels === "function") {
+              return originalLevels(geojson.features[polygonFeatureIndices[idx]]);
+            }
+            return originalLevels;
           }
         }))
       };
