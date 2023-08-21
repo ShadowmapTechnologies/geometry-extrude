@@ -1170,7 +1170,8 @@
         depth = _ref.depth,
         rect = _ref.rect,
         elevation = _ref.elevation,
-        levels = _ref.levels;
+        levels = _ref.levels,
+        levelOffset = _ref.levelOffset;
       var ringVertexCount = end - start;
       var splitBevel = opts.smoothBevel ? 1 : 2;
       var bevelSize = Math.min(depth / 2, opts.bevelSize);
@@ -1272,7 +1273,7 @@
               _uLen += Math.sqrt((_prevX - _x) * (_prevX - _x) + (_prevY - _y) * (_prevY - _y));
             }
             out.uv[vtx2] = _uLen;
-            out.uv[vtx2 + 1] = _k === 0 ? 0 : levels;
+            out.uv[vtx2 + 1] = _k === 0 ? levels : levelOffset;
             _prevX = _x;
             _prevY = _y;
             cursors.vertex++;
@@ -1323,7 +1324,7 @@
           //out.uv[vtx2] = (x - rect.x) / size;
           //out.uv[vtx2 + 1] = (y - rect.y) / size;
 
-          out.uv[vtx2] = 0.5;
+          out.uv[vtx2] = 0.5; // Use constant UV values for roofs
           out.uv[vtx2 + 1] = 0.5;
           cursors.vertex++;
         }
@@ -1675,7 +1676,8 @@
           rect: transformdRect,
           depth: typeof opts.depth === 'function' ? opts.depth(_i9) : opts.depth,
           elevation: typeof opts.elevation === 'function' ? opts.elevation(_i9) : opts.elevation,
-          levels: typeof opts.levels === 'function' ? opts.levels(_i9) : opts.levels
+          levels: typeof opts.levels === 'function' ? opts.levels(_i9) : opts.levels,
+          levelOffset: typeof opts.levelOffset === 'function' ? opts.levelOffset(_i9) : opts.levelOffset
         });
       }
       return innerExtrudeTriangulatedPolygon(preparedData, opts);
@@ -1821,6 +1823,7 @@
       var originalDepth = opts.depth;
       var originalElevation = opts.elevation;
       var originalLevels = opts.levels;
+      var originalLevelOffset = opts.levelOffset;
       return {
         polyline: extrudePolyline(polylines, Object.assign(opts, {
           depth: function depth(idx) {
@@ -1848,6 +1851,12 @@
               return originalLevels(geojson.features[polygonFeatureIndices[idx]]);
             }
             return originalLevels;
+          },
+          levelOffset: function levelOffset(idx) {
+            if (typeof originalLevelOffset === "function") {
+              return originalLevelOffset(geojson.features[polygonFeatureIndices[idx]]);
+            }
+            return originalLevelOffset;
           }
         }))
       };

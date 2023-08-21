@@ -346,7 +346,7 @@ const quadToTriangle = [
 
 // Add side vertices and indices. Include bevel.
 function addExtrudeSide(
-    out, {vertices, topVertices, splittedMap, depth, rect, elevation, levels}, start, end,
+    out, {vertices, topVertices, splittedMap, depth, rect, elevation, levels, levelOffset}, start, end,
     cursors, opts
 ) {
     const ringVertexCount = end - start;
@@ -465,7 +465,7 @@ function addExtrudeSide(
                     uLen += Math.sqrt((prevX - x) * (prevX - x) + (prevY - y) * (prevY - y));
                 }
                 out.uv[vtx2] = uLen;
-                out.uv[vtx2 + 1] = k === 0 ? 0 : levels;
+                out.uv[vtx2 + 1] = k === 0 ? levels : levelOffset;
                 prevX = x;
                 prevY = y;
 
@@ -908,6 +908,7 @@ export function extrudePolygon(polygons, opts) {
             depth: typeof opts.depth === 'function' ? opts.depth(i) : opts.depth,
             elevation: typeof opts.elevation === 'function' ? opts.elevation(i) : opts.elevation,
             levels: typeof opts.levels === 'function' ? opts.levels(i) : opts.levels,
+            levelOffset: typeof opts.levelOffset === 'function' ? opts.levelOffset(i) : opts.levelOffset,
         });
     }
     return innerExtrudeTriangulatedPolygon(preparedData, opts);
@@ -1061,6 +1062,7 @@ export function extrudeGeoJSON(geojson, opts) {
     const originalDepth = opts.depth;
     const originalElevation = opts.elevation;
     const originalLevels = opts.levels;
+    const originalLevelOffset = opts.levelOffset;
     return {
         polyline: extrudePolyline(polylines, Object.assign(opts, {
             depth: function (idx) {
@@ -1093,6 +1095,12 @@ export function extrudeGeoJSON(geojson, opts) {
                 }
                 return originalLevels;
             },
+            levelOffset: function (idx) {
+                if (typeof originalLevelOffset === "function") {
+                    return originalLevelOffset(geojson.features[polygonFeatureIndices[idx]]);
+                }
+                return originalLevelOffset;
+            }
         }))
     };
 }
