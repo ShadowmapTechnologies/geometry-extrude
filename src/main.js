@@ -232,6 +232,8 @@ function normalizeOpts(opts) {
 
     opts.depth = opts.depth || 1;
     opts.elevation = opts.elevation || 0;
+    opts.levels = opts.levels || 0;
+    opts.levelOffset = opts.levelOffset || 0;
     opts.bevelSize = opts.bevelSize || 0;
     opts.bevelSegments = opts.bevelSegments == null ? 2 : opts.bevelSegments;
     opts.smoothBevel = opts.smoothBevel || false;
