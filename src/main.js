@@ -234,6 +234,7 @@ function normalizeOpts(opts) {
     opts.elevation = opts.elevation || 0;
     opts.levels = opts.levels || 0;
     opts.levelOffset = opts.levelOffset || 0;
+    opts.id = opts.id || 0;
     opts.bevelSize = opts.bevelSize || 0;
     opts.bevelSegments = opts.bevelSegments == null ? 2 : opts.bevelSegments;
     opts.smoothBevel = opts.smoothBevel || false;
@@ -348,7 +349,7 @@ const quadToTriangle = [
 
 // Add side vertices and indices. Include bevel.
 function addExtrudeSide(
-    out, {vertices, topVertices, splittedMap, depth, rect, elevation, levels, levelOffset}, start, end,
+    out, {vertices, topVertices, splittedMap, depth, rect, elevation, levels, levelOffset, id}, start, end,
     cursors, opts
 ) {
     const ringVertexCount = end - start;
@@ -428,6 +429,8 @@ function addExtrudeSide(
                     out.uv[cursors.vertex * 2] = uLen / size;
                     out.uv[cursors.vertex * 2 + 1] = vLen[i] / size;
 
+                    out.id[cursors.vertex] = id;
+
                     prevX = x;
                     prevY = y;
                     cursors.vertex++;
@@ -471,6 +474,8 @@ function addExtrudeSide(
                 prevX = x;
                 prevY = y;
 
+                out.id[cursors.vertex] = id;
+
                 cursors.vertex++;
             }
         }
@@ -490,7 +495,7 @@ function addExtrudeSide(
     }
 }
 
-function addTopAndBottom({indices, topVertices, rect, depth, elevation}, out, cursors, opts) {
+function addTopAndBottom({indices, topVertices, rect, depth, elevation, id}, out, cursors, opts) {
     if (topVertices.length <= 4) {
         return;
     }
@@ -518,6 +523,8 @@ function addTopAndBottom({indices, topVertices, rect, depth, elevation}, out, cu
 
             out.uv[vtx2] = 0.5; // Use constant UV values for roofs
             out.uv[vtx2 + 1] = 0.5;
+
+            out.id[cursors.vertex] = id;
 
             cursors.vertex++;
         }
@@ -652,7 +659,8 @@ function innerExtrudeTriangulatedPolygon(preparedData, opts) {
     const data = {
         position: new Float32Array(vertexCount * 3),
         indices: new (vertexCount > 0xffff ? Uint32Array : Uint16Array)(indexCount),
-        uv: new Float32Array(vertexCount * 2)
+        uv: new Float32Array(vertexCount * 2),
+        id: new Float32Array(vertexCount),
     };
 
     const cursors = {
@@ -911,6 +919,7 @@ export function extrudePolygon(polygons, opts) {
             elevation: typeof opts.elevation === 'function' ? opts.elevation(i) : opts.elevation,
             levels: typeof opts.levels === 'function' ? opts.levels(i) : opts.levels,
             levelOffset: typeof opts.levelOffset === 'function' ? opts.levelOffset(i) : opts.levelOffset,
+            id: typeof opts.id === 'function' ? opts.id(i) : opts.id,
         });
     }
     return innerExtrudeTriangulatedPolygon(preparedData, opts);
@@ -1065,6 +1074,7 @@ export function extrudeGeoJSON(geojson, opts) {
     const originalElevation = opts.elevation;
     const originalLevels = opts.levels;
     const originalLevelOffset = opts.levelOffset;
+    const originalId = opts.id;
     return {
         polyline: extrudePolyline(polylines, Object.assign(opts, {
             depth: function (idx) {
@@ -1102,6 +1112,12 @@ export function extrudeGeoJSON(geojson, opts) {
                     return originalLevelOffset(geojson.features[polygonFeatureIndices[idx]]);
                 }
                 return originalLevelOffset;
+            },
+            id: function (idx) {
+                if (typeof originalId === "function") {
+                    return originalId(geojson.features[polygonFeatureIndices[idx]]);
+                }
+                return originalId;
             }
         }))
     };

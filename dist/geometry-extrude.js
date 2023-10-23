@@ -1079,6 +1079,7 @@
       opts.elevation = opts.elevation || 0;
       opts.levels = opts.levels || 0;
       opts.levelOffset = opts.levelOffset || 0;
+      opts.id = opts.id || 0;
       opts.bevelSize = opts.bevelSize || 0;
       opts.bevelSegments = opts.bevelSegments == null ? 2 : opts.bevelSegments;
       opts.smoothBevel = opts.smoothBevel || false;
@@ -1173,7 +1174,8 @@
         rect = _ref.rect,
         elevation = _ref.elevation,
         levels = _ref.levels,
-        levelOffset = _ref.levelOffset;
+        levelOffset = _ref.levelOffset,
+        id = _ref.id;
       var ringVertexCount = end - start;
       var splitBevel = opts.smoothBevel ? 1 : 2;
       var bevelSize = Math.min(depth / 2, opts.bevelSize);
@@ -1238,6 +1240,7 @@
               }
               out.uv[cursors.vertex * 2] = uLen / size;
               out.uv[cursors.vertex * 2 + 1] = vLen[i] / size;
+              out.id[cursors.vertex] = id;
               prevX = x;
               prevY = y;
               cursors.vertex++;
@@ -1278,6 +1281,7 @@
             out.uv[vtx2 + 1] = _k === 0 ? levels : levelOffset;
             _prevX = _x;
             _prevY = _y;
+            out.id[cursors.vertex] = id;
             cursors.vertex++;
           }
         }
@@ -1301,7 +1305,8 @@
         topVertices = _ref2.topVertices,
         rect = _ref2.rect,
         depth = _ref2.depth,
-        elevation = _ref2.elevation;
+        elevation = _ref2.elevation,
+        id = _ref2.id;
       if (topVertices.length <= 4) {
         return;
       }
@@ -1328,6 +1333,7 @@
 
           out.uv[vtx2] = 0.5; // Use constant UV values for roofs
           out.uv[vtx2 + 1] = 0.5;
+          out.id[cursors.vertex] = id;
           cursors.vertex++;
         }
       }
@@ -1448,7 +1454,8 @@
       var data = {
         position: new Float32Array(vertexCount * 3),
         indices: new (vertexCount > 0xffff ? Uint32Array : Uint16Array)(indexCount),
-        uv: new Float32Array(vertexCount * 2)
+        uv: new Float32Array(vertexCount * 2),
+        id: new Float32Array(vertexCount)
       };
       var cursors = {
         vertex: 0,
@@ -1679,7 +1686,8 @@
           depth: typeof opts.depth === 'function' ? opts.depth(_i9) : opts.depth,
           elevation: typeof opts.elevation === 'function' ? opts.elevation(_i9) : opts.elevation,
           levels: typeof opts.levels === 'function' ? opts.levels(_i9) : opts.levels,
-          levelOffset: typeof opts.levelOffset === 'function' ? opts.levelOffset(_i9) : opts.levelOffset
+          levelOffset: typeof opts.levelOffset === 'function' ? opts.levelOffset(_i9) : opts.levelOffset,
+          id: typeof opts.id === 'function' ? opts.id(_i9) : opts.id
         });
       }
       return innerExtrudeTriangulatedPolygon(preparedData, opts);
@@ -1826,6 +1834,7 @@
       var originalElevation = opts.elevation;
       var originalLevels = opts.levels;
       var originalLevelOffset = opts.levelOffset;
+      var originalId = opts.id;
       return {
         polyline: extrudePolyline(polylines, Object.assign(opts, {
           depth: function depth(idx) {
@@ -1859,6 +1868,12 @@
               return originalLevelOffset(geojson.features[polygonFeatureIndices[idx]]);
             }
             return originalLevelOffset;
+          },
+          id: function id(idx) {
+            if (typeof originalId === "function") {
+              return originalId(geojson.features[polygonFeatureIndices[idx]]);
+            }
+            return originalId;
           }
         }))
       };
