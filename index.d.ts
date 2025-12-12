@@ -19,6 +19,7 @@ type BasicExtrudeOpt = {
 }
 
 type ExtrudeResult = {
+    id: Float32Array,
     indices: Uint16Array|Uint32Array,
     position: Float32Array,
     normal: Float32Array,
@@ -75,6 +76,7 @@ interface GeometryExtrudeStatic {
         geojson: GeoJSON | GeoJSONPolygonGeometry | GeoJSONLineStringGeometry | GeoJSONMultiLineStringGeometry | GeoJSONMultiPolygonGeometry,
         opts: BasicExtrudeOpt & {
             depth: ((feature: GeoJSONFeature) => number) | number
+            elevation: ((feature: GeoJSONFeature) => number) | number
             lineWidth?: number
             miterLimit?: number
         }
