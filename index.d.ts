@@ -77,6 +77,9 @@ interface GeometryExtrudeStatic {
         opts: BasicExtrudeOpt & {
             depth: ((feature: GeoJSONFeature) => number) | number
             elevation: ((feature: GeoJSONFeature) => number) | number
+            levels: ((feature: GeoJSONFeature) => number) | number
+            levelOffset: ((feature: GeoJSONFeature) => number) | number
+            id: ((feature: GeoJSONFeature) => number) | number
             lineWidth?: number
             miterLimit?: number
         }
